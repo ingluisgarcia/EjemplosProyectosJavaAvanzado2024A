@@ -4,9 +4,19 @@
  */
 package colegio;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import jxl.Workbook;
+import jxl.write.Label;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
 
 /**
  *
@@ -55,6 +65,8 @@ public class FrmColegio extends javax.swing.JFrame {
         btnGuardar = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tableEstudiantesRegistrados = new javax.swing.JTable();
+        btnExportar = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -94,6 +106,20 @@ public class FrmColegio extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(tableEstudiantesRegistrados);
 
+        btnExportar.setText("Exportar");
+        btnExportar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExportarActionPerformed(evt);
+            }
+        });
+
+        jButton1.setText("Mayores de edad");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -116,12 +142,16 @@ public class FrmColegio extends javax.swing.JFrame {
                             .addComponent(jLabel3))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel4)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(comboProgramas, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
-                                .addComponent(btnGuardar))
-                            .addComponent(jLabel4))
-                        .addGap(0, 90, Short.MAX_VALUE)))
+                                .addComponent(btnGuardar)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton1)
+                                .addGap(22, 22, 22)
+                                .addComponent(btnExportar)))
+                        .addGap(0, 65, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -139,7 +169,9 @@ public class FrmColegio extends javax.swing.JFrame {
                     .addComponent(txtNombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txtEdad, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(comboProgramas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnGuardar))
+                    .addComponent(btnGuardar)
+                    .addComponent(btnExportar)
+                    .addComponent(jButton1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE)
                 .addContainerGap())
@@ -188,6 +220,21 @@ public class FrmColegio extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnGuardarActionPerformed
 
+    private void btnExportarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportarActionPerformed
+        try {
+            // TODO add your handling code here:
+            exportToExcel(tableEstudiantesRegistrados, "C:/Users/cymaniatico/Desktop/prueba.xls");
+        } catch (WriteException ex) {
+            Logger.getLogger(FrmColegio.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }//GEN-LAST:event_btnExportarActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        mostrarInfo2();
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     public void llenarCombo() {
         comboProgramas.removeAllItems();
         comboProgramas.addItem("Seleccione...");
@@ -207,6 +254,51 @@ public class FrmColegio extends javax.swing.JFrame {
                 listaEstudiante.get(i).getPrograma()});
         }
         tableEstudiantesRegistrados.setModel(modelo);
+    }
+    
+    public void mostrarInfo2(){
+        DefaultTableModel modelo = new DefaultTableModel();
+        modelo.setColumnIdentifiers(encabezado);
+        for(int i=0;i<listaEstudiante.size();i++){
+            if(Integer.parseInt(listaEstudiante.get(i).getEdad())>=18){
+                modelo.addRow(new Object[]{
+                listaEstudiante.get(i).getDocumento(),
+                listaEstudiante.get(i).getNombre(),
+                listaEstudiante.get(i).getEdad(),
+                listaEstudiante.get(i).getPrograma()});
+            }
+            
+        }
+        tableEstudiantesRegistrados.setModel(modelo);
+    }
+    
+     public static void exportToExcel(JTable table, String filePath) throws WriteException {
+        try {
+            WritableWorkbook workbook = Workbook.createWorkbook(new File(filePath));
+            WritableSheet sheet = workbook.createSheet("Hoja 1", 0);
+
+            // Escribir títulos de columnas
+            for (int i = 0; i < table.getColumnCount(); i++) {
+                Label label = new Label(i, 0, table.getColumnName(i));
+                sheet.addCell(label);
+            }
+
+            // Escribir datos de la tabla
+            for (int row = 0; row < table.getRowCount(); row++) {
+                for (int col = 0; col < table.getColumnCount(); col++) {
+                    Object value = table.getValueAt(row, col);
+                    Label label = new Label(col, row + 1, value != null ? value.toString() : "");
+                    sheet.addCell(label);
+                }
+            }
+
+            workbook.write();
+            workbook.close();
+
+            System.out.println("Excel creado exitosamente en: " + filePath);
+        } catch (IOException | WriteException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -245,8 +337,10 @@ public class FrmColegio extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnExportar;
     private javax.swing.JButton btnGuardar;
     private javax.swing.JComboBox<String> comboProgramas;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
